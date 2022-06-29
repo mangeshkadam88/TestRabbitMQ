@@ -1,4 +1,5 @@
 ﻿using Entities;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace TestRabbitMQ.Models
@@ -22,17 +23,17 @@ namespace TestRabbitMQ.Models
                 Hashes _hash = new Hashes();
                 _hash.id = Guid.NewGuid();
                 _hash.date = RandomDay();
-                _hash.sha1 = GetSha1(Guid.NewGuid().ToString());
+                _hash.sha1 = GetSha1(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
                 _list.Add(_hash);
             }
             return _list;
         }
 
-        public static string GetSha1(string input)
+        public static string GetSha1(string input, string salt)
         {
             using (var sha1 = System.Security.Cryptography.SHA1.Create())
             {
-                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+                byte[] inputBytes = Encoding.UTF8.GetBytes(input + salt);
                 byte[] hash = sha1.ComputeHash(inputBytes);
 
                 StringBuilder sb = new StringBuilder();
@@ -42,6 +43,21 @@ namespace TestRabbitMQ.Models
                 }
                 return sb.ToString();
             }
+        }
+
+        //public static string CreateSalt(int size)
+        //{
+        //    //Generate a cryptographic random number.
+        //    byte[] buff = new byte[size];
+        //    RandomNumberGenerator rng = RandomNumberGenerator.Create();
+        //    rng.GetBytes(buff);
+        //    return Convert.ToBase64String(buff);
+        //}
+
+        public static bool Equals(string plainTextInput, string hashedInput, string salt)
+        {
+            string newHashedPin = GetSha1(plainTextInput, salt);
+            return newHashedPin.Equals(hashedInput);
         }
     }
 }
